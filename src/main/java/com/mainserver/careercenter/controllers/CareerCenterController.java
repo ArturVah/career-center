@@ -1,32 +1,35 @@
 package com.mainserver.careercenter.controllers;
 
-import com.mainserver.careercenter.dao.FakeDao;
+import com.mainserver.careercenter.dao.JobAnnouncementDao;
 import com.mainserver.careercenter.domain.JobAnnouncement;
-import com.mainserver.careercenter.dto.JobTitle;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/")
 public class CareerCenterController {
 
+    private final JobAnnouncementDao jobAnnouncementDao;
+
+    public CareerCenterController(JobAnnouncementDao jobAnnouncementDao) {
+        this.jobAnnouncementDao = jobAnnouncementDao;
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView("index");
-        modelAndView.addObject("jobTitles", FakeDao.getJobTitlesStream());
+        modelAndView.addObject("jobTitles", jobAnnouncementDao.getJobTitlesStream());
         return modelAndView;
     }
 
     @RequestMapping(value = "/jobs/{jobId}", method = RequestMethod.GET)
     public ModelAndView getJobById(@PathVariable("jobId") int id) {
         ModelAndView modelAndView = new ModelAndView("job");
-        modelAndView.addObject("jobTitles", FakeDao.getJobTitlesStream());
-        modelAndView.addObject("jobAnnouncement", FakeDao.getJobAnnouncementByIdWithStream(id));
+        modelAndView.addObject("jobTitles", jobAnnouncementDao.getJobTitlesStream());
+        modelAndView.addObject("jobAnnouncement", jobAnnouncementDao.getJobAnnouncementByIdWithStream(id));
         return modelAndView;
     }
 
@@ -37,7 +40,7 @@ public class CareerCenterController {
 
     @RequestMapping(value = "/post", method = RequestMethod.POST)
     public String postNewJobAnnouncement(JobAnnouncement jobAnnouncement) {
-        FakeDao.postNewJobAnnouncement(jobAnnouncement);
+        jobAnnouncementDao.postNewJobAnnouncement(jobAnnouncement);
         return "post";
     }
 
