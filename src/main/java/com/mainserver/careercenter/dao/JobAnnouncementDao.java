@@ -2,13 +2,10 @@ package com.mainserver.careercenter.dao;
 
 import com.mainserver.careercenter.domain.JobAnnouncement;
 import com.mainserver.careercenter.dto.JobTitle;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
+import com.mainserver.careercenter.mappers.JobAnnouncementMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,20 +13,39 @@ import java.util.stream.Collectors;
 @Repository
 public class JobAnnouncementDao {
 
-    private SessionFactory sessionFactory = getSessionFactory();
+    private final JdbcTemplate jdbcTemplate;
+    private final JobAnnouncementMapper jobAnnouncementMapper;
 
-    @PostConstruct
-    private SessionFactory getSessionFactory() {
-        return new Configuration()
-                .configure()
-                .buildSessionFactory();
+    public JobAnnouncementDao(JdbcTemplate jdbcTemplate, JobAnnouncementMapper jobAnnouncementMapper) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.jobAnnouncementMapper = jobAnnouncementMapper;
     }
 
     public void postNewJobAnnouncement(JobAnnouncement jobAnnouncement) {
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-        session.save(jobAnnouncement);
-        session.getTransaction().commit();
+        String sql = "INSERT INTO " +
+                "job_announcement(" +
+                "title, " +
+                "jobDescription, " +
+                "jobResponsibilities, " +
+                "location, " +
+                "requiredQualifications, " +
+                "startDate, " +
+                "term, " +
+                "enabled" +
+                ") " +
+                "VALUES(?,?,?,?,?,?,?,?)";
+
+        Object[] params = {
+                jobAnnouncement.getTitle(),
+                jobAnnouncement.getJobDescription(),
+                jobAnnouncement.getJobResponsibilities(),
+                jobAnnouncement.getLocation(),
+                jobAnnouncement.getRequiredQualifications(),
+                jobAnnouncement.getStartDate(),
+                jobAnnouncement.getTerm().toString(),
+                jobAnnouncement.isEnabled(),
+        };
+        jdbcTemplate.update(sql, params);
     }
 
     /**
@@ -37,9 +53,10 @@ public class JobAnnouncementDao {
      * but in a new fancy way
      */
     public List<JobTitle> getJobTitlesStream() {
-        Session session = sessionFactory.openSession();
-        Query<JobAnnouncement> query = session.createQuery("from JobAnnouncement j where j.enabled = true", JobAnnouncement.class);
-        List<JobAnnouncement> jobAnnouncements = query.getResultList();
+        List<JobAnnouncement> jobAnnouncements = jdbcTemplate
+                .query("SELECT * FROM job_announcement j WHERE j.enabled = TRUE",
+                        jobAnnouncementMapper
+                );
 
         return jobAnnouncements
                 .stream()
@@ -52,10 +69,10 @@ public class JobAnnouncementDao {
      */
     @Deprecated
     public List<JobTitle> getJobTitlesWithoutStream() {
-        Session session = sessionFactory.openSession();
-        Query<JobAnnouncement> query = session.createQuery("from JobAnnouncement j where j.enabled = true", JobAnnouncement.class);
-        List<JobAnnouncement> jobAnnouncements = query.getResultList();
-
+        List<JobAnnouncement> jobAnnouncements = jdbcTemplate
+                .query("SELECT * FROM job_announcement j WHERE j.enabled = TRUE",
+                        jobAnnouncementMapper
+                );
         List<JobTitle> jobTitles = new ArrayList<>();
         for (JobAnnouncement jobAnnouncement : jobAnnouncements) {
             if (jobAnnouncement.isEnabled()) {
@@ -69,11 +86,12 @@ public class JobAnnouncementDao {
      * Find the JobAnnouncement by given ID
      */
     public JobAnnouncement getJobAnnouncementByIdWithStream(int id) {
-        Session session = sessionFactory.openSession();
-        Query<JobAnnouncement> query = session.createQuery("from JobAnnouncement j where j.id=:id and j.enabled = true", JobAnnouncement.class);
-        query.setParameter("id", id);
-
-        return query.getSingleResult();
+        return jdbcTemplate
+                .queryForObject(
+                        "SELECT * FROM job_announcement j WHERE j.enabled = TRUE AND j.id=?",
+                        jobAnnouncementMapper,
+                        id
+                );
     }
 
 }

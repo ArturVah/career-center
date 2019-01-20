@@ -1,40 +1,25 @@
 package com.mainserver.careercenter.domain;
 
-import javax.persistence.*;
-
-@Entity
-@Table(name = "job_announcement")
 public class JobAnnouncement {
 
     private static int announcementCount = 0;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column
     private String title;
 
-    @Column
     private String startDate;
 
-    @Column
-    @Enumerated(EnumType.STRING)
     private Term term;
 
-    @Column
     private String location;
 
-    @Column
     private String jobDescription;
 
-    @Column
     private String jobResponsibilities;
 
-    @Column
     private String requiredQualifications;
 
-    @Column
     private boolean enabled;
 
     public JobAnnouncement() {
