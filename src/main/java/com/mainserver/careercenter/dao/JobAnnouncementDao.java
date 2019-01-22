@@ -42,7 +42,7 @@ public class JobAnnouncementDao {
                 jobAnnouncement.getLocation(),
                 jobAnnouncement.getRequiredQualifications(),
                 jobAnnouncement.getStartDate(),
-                jobAnnouncement.getTerm().toString(),
+                jobAnnouncement.getTerm().name(),
                 jobAnnouncement.isEnabled(),
         };
         jdbcTemplate.update(sql, params);
